@@ -1,4 +1,4 @@
-# docker-library-mysql-server
+# docker-library-mysql5.7
 
 * 公式を参考にしています
    * https://github.com/docker-library/mysql/tree/master/5.7
