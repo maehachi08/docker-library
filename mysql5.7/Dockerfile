@@ -1,4 +1,5 @@
 FROM centos:latest
+LABEL maintainer="maehachi08"
 
 COPY docker-entrypoint.sh /usr/local/bin/
 
