@@ -20,53 +20,41 @@
 #
 #    RUBY_VERSION: ruby version for install by rbenv
 #
-FROM centos:7.3.1611
+FROM centos:7 AS build-env
 LABEL maintainer="maehachi08"
 
 ARG RUBY_VERSION
-ENV RUBY_VERSION ${RUBY_VERSION:-2.4.1}
+ENV RUBY_VERSION ${RUBY_VERSION:-2.5.1}
 
 ADD files/rbenv.sh /etc/profile.d/
 
-RUN set -x && \
+RUN set -ex \
+    && yum update -y \
+    && yum install -y \
+         make \
+         git \
+         gcc \
+         gcc-c++ \
+         bzip2 \
+         openssl-devel \
+         readline-devel \
+    && yum clean all \
+    && git clone git://github.com/sstephenson/rbenv.git /usr/local/rbenv \
+    && git clone git://github.com/sstephenson/ruby-build.git /usr/local/rbenv/plugins/ruby-build \
+    && chmod 644 /etc/profile.d/rbenv.sh \
+    && source /etc/profile.d/rbenv.sh \
+    && /usr/local/rbenv/bin/rbenv install ${RUBY_VERSION} \
+    && /usr/local/rbenv/bin/rbenv global ${RUBY_VERSION} \
+    && /usr/local/rbenv/shims/gem install bundler
 
-    # system update
-    yum update -y && \
+FROM centos:7
+LABEL maintainer="maehachi08"
 
-    # install epel
-    yum install -y epel-release && \
-
-    # install rpms
-    yum install -y \
-        make \
-        git \
-        gcc \
-        gcc-c++ \
-        bzip2 \
-        openssl-devel \
-        readline-devel \
-        python-pip && \
-
-    # upgrade pip
-    pip install --upgrade pip && \
-
-    # install aws cli
-    pip install awscli && \
-
-    # install rbenv
-    git clone git://github.com/sstephenson/rbenv.git /usr/local/rbenv && \
-    git clone git://github.com/sstephenson/ruby-build.git /usr/local/rbenv/plugins/ruby-build && \
-    chmod 644 /etc/profile.d/rbenv.sh && \
-    source /etc/profile.d/rbenv.sh && \
-    /usr/local/rbenv/bin/rbenv install ${RUBY_VERSION} && \
-    /usr/local/rbenv/bin/rbenv global ${RUBY_VERSION} && \
-    
-    # install bundler
-    /usr/local/rbenv/shims/gem install bundler && \
-
-    # bundle install
-    # **please ADD Gemfile, and bundle install**
-
-    # delete yum cache
-    yum clean all
+ARG RUBY_VERSION
+ENV RUBY_VERSION ${RUBY_VERSION:-2.5.1}
+ADD files/rbenv.sh /etc/profile.d/
+COPY --from=build-env /usr/local/rbenv /usr/local/rbenv
+RUN set -ex \
+    && yum update -y \
+    && yum install -y epel-release
 
