@@ -54,7 +54,31 @@ ARG RUBY_VERSION
 ENV RUBY_VERSION ${RUBY_VERSION:-2.5.1}
 ADD files/rbenv.sh /etc/profile.d/
 COPY --from=build-env /usr/local/rbenv /usr/local/rbenv
+
+### require to use bundler
+#
+# gcc
+# gcc-c++
+#   Gem::Ext::BuildError: ERROR: Failed to build gem native extension.
+#   make: g++: Command not found
+#   make: *** [accessor.o] Error 127
+#
+# make
+#   sh: make: command not found
+#
+# require nokogiri gems
+#   libxml2-devel
+#   libxslt-devel
 RUN set -ex \
     && yum update -y \
-    && yum install -y epel-release
-
+    && yum install -y epel-release \
+    && yum install -y \
+         make \
+         gcc \
+         gcc-c++ \
+         jq \
+         git \
+         mysql-devel \
+         libxml2-devel \
+         libxslt-devel \
+    && yum clean all
